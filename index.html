@@ -67,16 +67,16 @@ body.edit .inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255
 /* password modal */
 .mod{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(8,6,20,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s}
 .mod.show{opacity:1;pointer-events:auto}
-.mbox{width:100%;max-width:360px;background:var(--card);border:1px solid var(--bd);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 22px 20px;transform:translateY(14px) scale(.97);transition:transform .25s}
+.mbox{text-align:center;width:100%;max-width:360px;background:var(--card);border:1px solid var(--bd);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 22px 20px;transform:translateY(14px) scale(.97);transition:transform .25s}
 .mod.show .mbox{transform:none}
 .mbox.shake{animation:shk .4s}
 @keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-.mic{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;margin-bottom:14px;box-shadow:0 8px 20px rgba(109,74,255,.35)}
+.mic{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;margin:0 auto 14px;box-shadow:0 8px 20px rgba(109,74,255,.35)}
 .mic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mbox h2{font-size:19px;font-weight:800;letter-spacing:-.4px}
 .mbox p{font-size:13px;color:var(--mu);margin:4px 0 16px}
 .pw{position:relative}
-.pw input{width:100%;height:46px;border-radius:14px;border:1px solid var(--bd);background:var(--in);color:var(--tx);font:500 16px Inter,sans-serif;padding:0 46px 0 14px;outline:0;transition:.2s}
+.pw input{text-align:left;width:100%;height:46px;border-radius:14px;border:1px solid var(--bd);background:var(--in);color:var(--tx);font:500 16px Inter,sans-serif;padding:0 46px 0 14px;outline:0;transition:.2s}
 .pw input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255,.18)}
 .pw.bad input{border-color:#ff4d6d;box-shadow:0 0 0 3px rgba(255,77,109,.15)}
 .eye{position:absolute;right:4px;top:4px;width:38px;height:38px;border:0;background:transparent;color:var(--mu);border-radius:10px;cursor:pointer;display:grid;place-items:center}
