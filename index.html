@@ -29,6 +29,7 @@ nav{display:flex;gap:6px;padding:0 0 12px;overflow-x:auto;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
 nav button{flex:1;min-width:max-content;border:0;background:transparent;color:var(--mu);font:600 14px Inter,sans-serif;padding:10px 18px;border-radius:999px;cursor:pointer;transition:.2s}
 nav button.act{background:var(--card);color:var(--ac);box-shadow:var(--sh)}
+nav .short{display:none}
 .hero{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:22px 0 16px;flex-wrap:wrap}
 .hero h1{font-size:28px;letter-spacing:-.8px;font-weight:800}
 .hero p{color:var(--mu);font-size:13px;margin-top:4px}
@@ -63,6 +64,9 @@ body.edit .inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255
 @media(max-width:760px){
  .wrap{padding:0 12px}.hero h1{font-size:23px}.pg{flex:1 1 100%}
  .brand small,.btn span.t{display:none}.btn{padding:0 12px}
+ nav{overflow:visible;gap:4px}
+ nav button{min-width:0;padding:10px 4px;font-size:13px;text-align:center}
+ nav .full{display:none}nav .short{display:inline}
  .card{padding:8px;border-radius:22px}
  .row.hd{display:none}
  .row{grid-template-columns:repeat(var(--c),1fr);border:1px solid var(--bd);margin:8px 0;padding:14px;border-radius:20px;gap:12px 8px;background:var(--card)}
@@ -124,7 +128,8 @@ let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('sh
 function syncUI(ok,txt){const s=$('#sync');s.classList.toggle('err',!ok);s.querySelector('span').textContent=txt}
 
 /* tabs */
-$('#tabs').innerHTML=[...Object.entries(SUB).map(([k,v])=>[k,v.name]),['tests','Test Tracker']].map(([k,n])=>`<button data-t="${k}">${n}</button>`).join('');
+const SHORT={physics:'Phy',chemistry:'Chem',maths:'Math',tests:'Test'};
+$('#tabs').innerHTML=[...Object.entries(SUB).map(([k,v])=>[k,v.name]),['tests','Test Tracker']].map(([k,n])=>`<button data-t="${k}"><span class="full">${n}</span><span class="short">${SHORT[k]}</span></button>`).join('');
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;history.replaceState(null,'','#'+tab);render();scrollTo({top:0,behavior:'smooth'})}};
 
 /* render */
