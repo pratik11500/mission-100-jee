@@ -63,6 +63,29 @@ body.edit .inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .sync{font-size:11px;color:var(--mu);display:flex;align-items:center;gap:6px}
 .sync i{width:7px;height:7px;border-radius:50%;background:var(--ok)}.sync.err i{background:#ff4d6d}
+
+/* password modal */
+.mod{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(8,6,20,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s}
+.mod.show{opacity:1;pointer-events:auto}
+.mbox{width:100%;max-width:360px;background:var(--card);border:1px solid var(--bd);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 22px 20px;transform:translateY(14px) scale(.97);transition:transform .25s}
+.mod.show .mbox{transform:none}
+.mbox.shake{animation:shk .4s}
+@keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.mic{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;margin-bottom:14px;box-shadow:0 8px 20px rgba(109,74,255,.35)}
+.mic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mbox h2{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.mbox p{font-size:13px;color:var(--mu);margin:4px 0 16px}
+.pw{position:relative}
+.pw input{width:100%;height:46px;border-radius:14px;border:1px solid var(--bd);background:var(--in);color:var(--tx);font:500 16px Inter,sans-serif;padding:0 46px 0 14px;outline:0;transition:.2s}
+.pw input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255,.18)}
+.pw.bad input{border-color:#ff4d6d;box-shadow:0 0 0 3px rgba(255,77,109,.15)}
+.eye{position:absolute;right:4px;top:4px;width:38px;height:38px;border:0;background:transparent;color:var(--mu);border-radius:10px;cursor:pointer;display:grid;place-items:center}
+.eye svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.merr{font-size:12px;font-weight:600;color:#ff4d6d;min-height:16px;margin-top:8px}
+.macts{display:flex;gap:10px;margin-top:10px}
+.macts button{flex:1;height:44px;border-radius:14px;font:700 14px Inter,sans-serif;cursor:pointer;border:1px solid var(--bd);background:var(--in);color:var(--tx);transition:.2s}
+.macts button.go{border:0;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2));box-shadow:0 6px 16px rgba(109,74,255,.35)}
+.macts button:disabled{opacity:.6;cursor:wait}
 @media(max-width:760px){
  .wrap{padding:0 12px}.hero h1{font-size:23px}.pg{flex:1 1 100%}
  .brand small,.btn span.t{display:none}.btn{padding:0 12px}
@@ -93,6 +116,13 @@ body.edit .inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(109,74,255
 <div class="wrap"><div class="hero"><div><h1 id="ttl"></h1><p>Mission 100 JEE 2027 • Personal Progress Tracker</p></div><div class="pg" id="pg"></div></div>
 <div class="card" id="app"></div></div>
 <div class="toast" id="toast"></div>
+<div class="mod" id="mod" aria-hidden="true"><div class="mbox" id="mbox" role="dialog" aria-modal="true" aria-labelledby="mt">
+ <div class="mic"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+ <h2 id="mt">Enter edit password</h2><p>Only you can change progress. Viewing stays open for everyone.</p>
+ <div class="pw" id="pw"><input id="pwIn" type="password" placeholder="Password" autocomplete="current-password" autocapitalize="off" spellcheck="false"><button class="eye" id="eye" type="button" aria-label="Show password"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+ <div class="merr" id="merr"></div>
+ <div class="macts"><button type="button" id="mCancel">Cancel</button><button type="button" class="go" id="mGo">Unlock</button></div>
+</div></div>
 
 <script>
 const API='/api/tracker';
@@ -118,11 +148,46 @@ $('#themeBtn').onclick=()=>theme(document.documentElement.dataset.theme==='dark'
 
 /* edit mode */
 function setEdit(v){edit=v;document.body.classList.toggle('edit',v);$('#editBtn').classList.toggle('on',v);$('#editSt').textContent=v?'ON':'OFF';document.querySelectorAll('.inp').forEach(i=>i.readOnly=!v)}
+/* password modal */
+let pwBusy=false,pwResolve=null;
+function askPass(){
+ return new Promise(res=>{
+  pwResolve=res;$('#pwIn').value='';$('#pwIn').type='password';$('#merr').textContent='';$('#pw').classList.remove('bad');
+  $('#mod').classList.add('show');$('#mod').setAttribute('aria-hidden','false');
+  setTimeout(()=>$('#pwIn').focus(),120);
+ });
+}
+function closePass(v){$('#mod').classList.remove('show');$('#mod').setAttribute('aria-hidden','true');$('#pwIn').blur();if(pwResolve){pwResolve(v);pwResolve=null}}
+async function verifyPass(k){
+ const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-edit-key':k},body:JSON.stringify({verify:true})});
+ return r.ok;
+}
+async function submitPass(){
+ if(pwBusy)return;const k=$('#pwIn').value;
+ if(!k){$('#pwIn').focus();return}
+ pwBusy=true;$('#mGo').disabled=true;$('#mGo').textContent='Checking…';$('#merr').textContent='';$('#pw').classList.remove('bad');
+ let ok=false,net=false;
+ try{ok=await verifyPass(k)}catch{net=true}
+ pwBusy=false;$('#mGo').disabled=false;$('#mGo').textContent='Unlock';
+ if(ok)return closePass(k);
+ $('#merr').textContent=net?'Network error, try again':'Wrong password';
+ $('#pw').classList.add('bad');
+ const b=$('#mbox');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');
+ $('#pwIn').select();
+}
+$('#mGo').onclick=submitPass;
+$('#mCancel').onclick=()=>closePass(null);
+$('#mod').addEventListener('click',e=>{if(e.target.id==='mod')closePass(null)});
+$('#pwIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitPass()}});
+$('#pwIn').addEventListener('input',()=>{$('#pw').classList.remove('bad');$('#merr').textContent=''});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mod').classList.contains('show'))closePass(null)});
+$('#eye').onclick=()=>{const i=$('#pwIn');i.type=i.type==='password'?'text':'password';i.focus()};
+
+/* edit mode */
 $('#editBtn').onclick=async()=>{
  if(edit){setEdit(false);localStorage.removeItem('ek');key='';return toast('Edit mode off · view only')}
- const k=prompt('Enter edit password');if(!k)return;
- try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-edit-key':k},body:JSON.stringify({verify:true})});
-  if(!r.ok)throw 0;key=k;localStorage.setItem('ek',k);setEdit(true);toast('Edit mode on')}catch{toast('Wrong password')}
+ const k=await askPass();if(!k)return;
+ key=k;localStorage.setItem('ek',k);setEdit(true);toast('Edit mode on')
 };
 
 /* ui helpers */
